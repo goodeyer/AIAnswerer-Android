@@ -64,6 +64,11 @@ android {
                 println("Release signing configuration loaded from local.properties")
             } else {
                 println("Warning: Release signing configuration incomplete, using debug key")
+                val debugConfig = signingConfigs.getByName("debug")
+                this.storeFile = debugConfig.storeFile
+                this.storePassword = debugConfig.storePassword
+                this.keyAlias = debugConfig.keyAlias
+                this.keyPassword = debugConfig.keyPassword
             }
         }
     }
