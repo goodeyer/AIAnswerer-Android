@@ -56,7 +56,8 @@ class OpenAIClient {
     suspend fun analyzeQuestion(
         recognizedText: String,
         questionTypes: Set<String> = emptySet(),
-        questionScope: String = ""
+        questionScope: String = "",
+        ragContext: String = ""
     ): Result<AIAnswer> = withContext(Dispatchers.IO) {
         try {
             // 从配置中读取最新的API设置
@@ -72,7 +73,7 @@ class OpenAIClient {
             }
 
             // 构建请求，使用动态系统提示词
-            val systemPrompt = Constants.buildSystemPrompt(questionTypes, questionScope)
+            val systemPrompt = Constants.buildSystemPrompt(questionTypes, questionScope, ragContext)
             val messages = listOf(
                 ChatMessage(role = "system", content = systemPrompt),
                 ChatMessage(

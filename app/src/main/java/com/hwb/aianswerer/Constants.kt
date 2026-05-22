@@ -22,44 +22,63 @@ object Constants {
      *
      * @param questionTypes 题型集合（如：单选题、多选题等）
      * @param questionScope 题目内容范围
+     * @param ragContext    本地知识库检索到的「参考资料」纯文本；为空则不拼入
      * @return 优化后的系统提示词
      */
-    fun buildSystemPrompt(questionTypes: Set<String>, questionScope: String): String {
+    fun buildSystemPrompt(
+        questionTypes: Set<String>,
+        questionScope: String,
+        ragContext: String = ""
+    ): String {
         val basePrompt = getBaseSystemPrompt()
-        if (questionTypes.isEmpty() && questionScope.isBlank()) {
+        val hasRag = ragContext.isNotBlank()
+        if (questionTypes.isEmpty() && questionScope.isBlank() && !hasRag) {
             return basePrompt
         }
 
         val promptBuilder = StringBuilder(basePrompt)
-        promptBuilder.append("\n\n")
-        promptBuilder.append(MyApplication.getString(R.string.system_prompt_limit_header))
-        promptBuilder.append('\n')
 
-        val typeSeparator = MyApplication.getString(R.string.system_prompt_type_separator)
-        val essayType = MyApplication.getString(R.string.ai_question_type_essay)
-        var hasConstraint = false
+        // —— 题型 / 范围 限制 —— //
+        if (questionTypes.isNotEmpty() || questionScope.isNotBlank()) {
+            promptBuilder.append("\n\n")
+            promptBuilder.append(MyApplication.getString(R.string.system_prompt_limit_header))
+            promptBuilder.append('\n')
 
-        // 添加题型限制
-        if (questionTypes.isNotEmpty()) {
-            promptBuilder.append(
-                MyApplication.getString(
-                    R.string.system_prompt_type_template,
-                    questionTypes.joinToString(typeSeparator),
-                    essayType
+            val typeSeparator = MyApplication.getString(R.string.system_prompt_type_separator)
+            val essayType = MyApplication.getString(R.string.ai_question_type_essay)
+            var hasConstraint = false
+
+            // 添加题型限制
+            if (questionTypes.isNotEmpty()) {
+                promptBuilder.append(
+                    MyApplication.getString(
+                        R.string.system_prompt_type_template,
+                        questionTypes.joinToString(typeSeparator),
+                        essayType
+                    )
                 )
-            )
-            hasConstraint = true
+                hasConstraint = true
+            }
+
+            // 添加题目内容范围限制
+            if (questionScope.isNotBlank()) {
+                if (hasConstraint) {
+                    promptBuilder.append('\n')
+                }
+                promptBuilder.append(
+                    MyApplication.getString(R.string.system_prompt_scope_template, questionScope)
+                )
+            }
         }
 
-        // 添加题目内容范围限制
-        if (questionScope.isNotBlank()) {
-            if (hasConstraint) {
-                promptBuilder.append('\n')
-            }
-            promptBuilder.append(
-                MyApplication.getString(R.string.system_prompt_scope_template, questionScope)
-            )
+        // —— RAG 参考资料（本地知识库检索结果） —— //
+        if (hasRag) {
+            promptBuilder.append("\n\n")
+            promptBuilder.append(MyApplication.getString(R.string.system_prompt_rag_header))
+            promptBuilder.append('\n')
+            promptBuilder.append(ragContext)
         }
+
         return promptBuilder.toString()
     }
 

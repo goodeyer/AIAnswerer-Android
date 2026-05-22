@@ -485,8 +485,32 @@ class FloatingWindowService : Service(), LifecycleOwner, ViewModelStoreOwner,
                 val questionScope = AppConfig.getQuestionScope()
                 val autoCopy = AppConfig.getAutoCopy()
 
+                // —— RAG 检索（开关关闭 / 异常 / 零命中 → 返回 ""，安全降级） —— //
+                val ragContext: String = try {
+                    com.hwb.aianswerer.rag.RagOrchestrator.retrieveContext(
+                        text,
+                        this@FloatingWindowService.applicationContext
+                    )
+                } catch (e: Exception) {
+                    Log.w(TAG, "⚠️ RAG 检索异常，已降级走通用 AI: ${e.message}")
+                    ""
+                }
+
+                if (AppConfig.getRagEnabled()) {
+                    val toastResId = if (ragContext.isNotBlank()) {
+                        R.string.rag_toast_hit
+                    } else {
+                        R.string.rag_toast_fallback
+                    }
+                    android.widget.Toast.makeText(
+                        this@FloatingWindowService,
+                        MyApplication.getString(toastResId),
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+
                 val apiClient = OpenAIClient.getInstance()
-                val result = apiClient.analyzeQuestion(text, questionTypes, questionScope)
+                val result = apiClient.analyzeQuestion(text, questionTypes, questionScope, ragContext)
 
                 result.onSuccess { aiAnswer ->
                     // 读取答题卡片显示配置

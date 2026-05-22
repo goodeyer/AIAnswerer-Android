@@ -199,6 +199,14 @@ class MainActivity : ComponentActivity() {
                             MenuItem.ABOUT -> {
                                 startActivity(Intent(this, AboutActivity::class.java))
                             }
+
+                            MenuItem.KNOWLEDGE_BASE -> {
+                                startActivity(Intent(this, KnowledgeBaseActivity::class.java))
+                            }
+
+                            MenuItem.RAG_SETTINGS -> {
+                                startActivity(Intent(this, RagSettingsActivity::class.java))
+                            }
                         }
                     }
                 )
@@ -390,7 +398,9 @@ class MainActivity : ComponentActivity() {
  */
 enum class MenuItem {
     SETTINGS,
-    ABOUT
+    ABOUT,
+    KNOWLEDGE_BASE,
+    RAG_SETTINGS
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -422,6 +432,18 @@ fun MainScreen(
                         text = { Text(stringResource(R.string.menu_settings)) },
                         onClick = {
                             onMenuItemClick(MenuItem.SETTINGS)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.menu_knowledge_base)) },
+                        onClick = {
+                            onMenuItemClick(MenuItem.KNOWLEDGE_BASE)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.menu_rag_settings)) },
+                        onClick = {
+                            onMenuItemClick(MenuItem.RAG_SETTINGS)
                         }
                     )
                     DropdownMenuItem(

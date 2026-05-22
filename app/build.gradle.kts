@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 // 读取local.properties
@@ -28,8 +29,8 @@ android {
         applicationId = "com.hwb.aianswerer"
         minSdk = 30
         targetSdk = 34
-        versionCode = 4
-        versionName = "0.0.4"
+        versionCode = 5
+        versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -152,4 +153,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     implementation(libs.mmkv)
+
+    // Room (RAG 知识库本地存储)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 }

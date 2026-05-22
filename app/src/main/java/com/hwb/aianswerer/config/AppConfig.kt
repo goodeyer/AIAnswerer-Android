@@ -264,5 +264,103 @@ object AppConfig {
     fun setFirstLaunchComplete() {
         mmkv.encode(KEY_IS_FIRST_LAUNCH, false)
     }
+
+    // ========== RAG 知识库相关（Phase 1-3 stub；UI 写入 Phase 4 接入） ==========
+    // 这一组 getter 在本波（Phase 1-3）只提供默认值，使 EmbeddingClient /
+    // RagOrchestrator 可以直接编译运行；Phase 4 会补 setter + UI 绑定。
+
+    private const val KEY_RAG_ENABLED = "rag_enabled"
+    private const val KEY_RAG_TOP_K = "rag_top_k"
+    private const val KEY_RAG_THRESHOLD = "rag_threshold"
+    private const val KEY_RAG_MAX_CONTEXT = "rag_max_context"
+    private const val KEY_EMBED_URL = "embed_url"
+    private const val KEY_EMBED_MODEL = "embed_model"
+    private const val KEY_EMBED_KEY = "embed_key"
+    private const val KEY_EMBED_USE_CHAT_KEY = "embed_use_chat_key"
+
+    /** RAG 总开关；默认开。 */
+    fun getRagEnabled(): Boolean = mmkv.decodeBool(KEY_RAG_ENABLED, true)
+
+    /** 检索 topK；默认 3。 */
+    fun getRagTopK(): Int = mmkv.decodeInt(KEY_RAG_TOP_K, 3).coerceAtLeast(1)
+
+    /** 相似度阈值（加权后分数）；< 阈值视为未命中，走通用兜底。 */
+    fun getRagThreshold(): Float = mmkv.decodeFloat(KEY_RAG_THRESHOLD, 0.5f)
+
+    /** 拼入 prompt 的最大字符数，防止上下文超长。 */
+    fun getRagMaxContext(): Int = mmkv.decodeInt(KEY_RAG_MAX_CONTEXT, 1500).coerceAtLeast(200)
+
+    /** Embedding API URL（OpenAI 兼容 /v1/embeddings）。 */
+    fun getEmbedUrl(): String =
+        mmkv.decodeString(KEY_EMBED_URL, "https://api.siliconflow.cn/v1/embeddings")
+            ?: "https://api.siliconflow.cn/v1/embeddings"
+
+    /** Embedding 模型名。 */
+    fun getEmbedModel(): String =
+        mmkv.decodeString(KEY_EMBED_MODEL, "BAAI/bge-m3") ?: "BAAI/bge-m3"
+
+    /**
+     * Embedding API Key：
+     * - 若用户勾选「沿用 chat key」且独立 key 为空 → fallback getApiKey()
+     * - 否则使用独立 key（可为空，调用方需自行校验）
+     */
+    fun getEmbedKey(): String {
+        val useChat = getEmbedUseChatKey()
+        val ownKey = mmkv.decodeString(KEY_EMBED_KEY, "") ?: ""
+        return if (useChat && ownKey.isBlank()) getApiKey() else ownKey
+    }
+
+    /** 是否沿用 chat 的 API Key；默认 true（多数用户同服务商）。 */
+    fun getEmbedUseChatKey(): Boolean = mmkv.decodeBool(KEY_EMBED_USE_CHAT_KEY, true)
+
+    // ---------- RAG setter（Phase 4 接入 UI） ----------
+
+    /** RAG 总开关 */
+    fun saveRagEnabled(enabled: Boolean) {
+        mmkv.encode(KEY_RAG_ENABLED, enabled)
+    }
+
+    /** 检索 topK，最小 1 */
+    fun saveRagTopK(topK: Int) {
+        mmkv.encode(KEY_RAG_TOP_K, topK.coerceAtLeast(1))
+    }
+
+    /** 相似度阈值（加权后） */
+    fun saveRagThreshold(threshold: Float) {
+        mmkv.encode(KEY_RAG_THRESHOLD, threshold)
+    }
+
+    /** 拼入 prompt 的最大字符数，最小 200 */
+    fun saveRagMaxContext(maxChars: Int) {
+        mmkv.encode(KEY_RAG_MAX_CONTEXT, maxChars.coerceAtLeast(200))
+    }
+
+    /** Embedding API URL */
+    fun saveEmbedUrl(url: String) {
+        mmkv.encode(KEY_EMBED_URL, url)
+    }
+
+    /** Embedding 模型名 */
+    fun saveEmbedModel(model: String) {
+        mmkv.encode(KEY_EMBED_MODEL, model)
+    }
+
+    /** Embedding API Key（独立 key；为空且 useChatKey=true 时回落 chat key） */
+    fun saveEmbedKey(key: String) {
+        mmkv.encode(KEY_EMBED_KEY, key)
+    }
+
+    /** 是否沿用 chat 的 API Key */
+    fun saveEmbedUseChatKey(useChat: Boolean) {
+        mmkv.encode(KEY_EMBED_USE_CHAT_KEY, useChat)
+    }
+
+    /**
+     * 读取 Embedding 独立 key 的原始值（不做 chat key 回落）。
+     * 用于设置页回显——避免把 chat key 暴露给用户误以为已写入。
+     */
+    fun getEmbedKeyRaw(): String {
+        return mmkv.decodeString(KEY_EMBED_KEY, "") ?: ""
+    }
 }
 

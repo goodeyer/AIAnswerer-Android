@@ -53,6 +53,18 @@
             android:exported="false"
             android:label="@string/about_title" />
 
+        <!-- 知识库管理 Activity（RAG Phase 5） -->
+        <activity
+            android:name=".KnowledgeBaseActivity"
+            android:exported="false"
+            android:label="@string/kb_title" />
+
+        <!-- RAG 设置 Activity（RAG Phase 5） -->
+        <activity
+            android:name=".RagSettingsActivity"
+            android:exported="false"
+            android:label="@string/rag_settings_title" />
+
         <!-- 透明确认Activity -->
         <activity
             android:name=".ConfirmTextActivity"

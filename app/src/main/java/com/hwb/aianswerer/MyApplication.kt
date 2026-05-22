@@ -3,6 +3,7 @@ package com.hwb.aianswerer
 import android.app.Application
 import android.content.Context
 import com.hwb.aianswerer.config.AppConfig
+import com.hwb.aianswerer.db.AppDatabase
 import com.hwb.aianswerer.utils.LanguageUtil
 
 class MyApplication : Application() {
@@ -25,6 +26,10 @@ class MyApplication : Application() {
 
         // MMKV已在attachBaseContext中初始化
         // 语言配置已在attachBaseContext中应用
+
+        // 预热 Room 数据库（RAG 知识库），首次访问触发同步建库，
+        // 避免首次答题时主线程在 OpenHelper 上等待。
+        AppDatabase.getInstance(this)
     }
 
     companion object {
